@@ -1,57 +1,41 @@
 from pathlib import Path
 
 from app.process.import_.agent.state import ImportGraphState
-from app.shared.runtime.logger import node_log, step_log
+from app.shared.runtime.logger import node_log, step_log, logger
 
 
 @step_log("resolve_input_file")
-def resolve_input_file(state: dict) -> ImportGraphState:
+def resolve_input_file(state: ImportGraphState) -> ImportGraphState:
     """
-    文件类型识别与状态初始化节点（导入流程入口）
-    核心功能：根据本地文件路径识别文件类型，自动装配对应状态字段，为后续流程路由提供依据
-
-    业务逻辑：
-        1. 校验文件路径是否存在
-        2. 根据后缀识别 MD / PDF 文件
-        3. 自动填充对应路径、路由开关、文件标题
-        4. 不支持的文件类型直接终止流程
-
-    Args:
-        state: 导入流程全局状态，必须包含 local_file_path 字段
-
-    Returns:
-        ImportGraphState: 补全文件信息后的完整状态对象
+    入口识别服务：
+    1. 校验 local_file_path
+    2. 识别文件类型（PDF / Markdown）
+    3. 回写 is_pdf_read_enabled / is_md_read_enabled
+    4. 回写 pdf_path / md_path / file_title
     """
-    # 1. 获取文件本地路径
+
+    # 1. 获取state local_file_path 属性  state['key'] ->  state.get(key)
     local_file_path = state.get("local_file_path")
-
-    # 2. 校验文件路径是否为空，为空则直接结束流程
+    # 2. 进行local_file_path验证,为空 ->  打印异常日志 抛出异常
     if not local_file_path:
-        node_log.warning("节点:resolve_input_file, 文件路径为空，直接终止当前导入流程")
-        return state
-
-    # 3. 识别文件类型并设置对应状态与路由开关
+        logger.error(f"传入的local_file_path参数为空,没有文件,无法继续业务! 直接抛出异常!")
+        raise ValueError("传入的local_file_path参数为空,没有文件,无法继续业务!")
+    # 3. 判断是md  is_md_read_enabled = True  md_path =  local_file_path
     if local_file_path.endswith(".md"):
-        # Markdown 文件：启用 MD 处理链路，禁用 PDF 处理链路
-        state["md_path"] = local_file_path
-        state["is_md_read_enabled"] = True
-        state["is_pdf_read_enabled"] = False
-
+        state['is_md_read_enabled'] = True
+        state['md_path'] = local_file_path
+    # 4. 判断是pdf is_pdf_read_enabled = True  pdf_path =  local_file_path
     elif local_file_path.endswith(".pdf"):
-        # PDF 文件：启用 PDF 处理链路，禁用 MD 处理链路
-        state["pdf_path"] = local_file_path
-        state["is_pdf_read_enabled"] = True
-        state["is_md_read_enabled"] = False
-
+        state['is_pdf_read_enabled'] = True
+        state['pdf_path'] = local_file_path
+    # 5. else啥也不是  打印日志 warring  直接返回 state
     else:
-        # 不支持的文件类型，直接终止流程
-        node_log.warning(
-            f"节点:resolve_input_file, 不支持的文件类型: {local_file_path}，终止流程"
-        )
+        logger.warning(f"传入的文件:{local_file_path}类型无法处理,当前项目只支持 md / pdf类型,直接跳转到END节点!")
         return state
-
-    # 4. 自动提取文件标题（不带后缀）
-    state["file_title"] = Path(local_file_path).stem
-
-    # 5. 返回补全后的状态
+    # 6. 处理local_file_path -> file_title -> state
+    # local_file_path -> str -> 路径 ->
+    # Path -> .name = xx.md  .stem = xx  .suffix = .md  .parent .parents[1]
+    #  read_text()  write_text()  read_bytes()  write_bytes()
+    state['file_title'] = Path(local_file_path).stem
+    # 7. 返回state 处理完毕
     return state
