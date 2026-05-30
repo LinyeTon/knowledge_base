@@ -13,17 +13,17 @@ from app.shared.runtime.logger import logger
 
 load_dotenv()
 
-workflow = StateGraph(ImportGraphState)
+main_builder = StateGraph(ImportGraphState)
 
-workflow.add_node("node_entry", node_entry)
-workflow.add_node("node_pdf_to_md", node_pdf_to_md)
-workflow.add_node("node_md_img", node_md_img)
-workflow.add_node("node_document_split", node_document_split)
-workflow.add_node("node_item_name_recognition", node_item_name_recognition)
-workflow.add_node("node_bge_embedding", node_bge_embedding)
-workflow.add_node("node_import_milvus", node_import_milvus)
+main_builder.add_node("node_entry", node_entry)
+main_builder.add_node("node_pdf_to_md", node_pdf_to_md)
+main_builder.add_node("node_md_img", node_md_img)
+main_builder.add_node("node_document_split", node_document_split)
+main_builder.add_node("node_item_name_recognition", node_item_name_recognition)
+main_builder.add_node("node_bge_embedding", node_bge_embedding)
+main_builder.add_node("node_import_milvus", node_import_milvus)
 
-workflow.set_entry_point("node_entry")
+main_builder.set_entry_point("node_entry")
 
 def after_entry_node(state: ImportGraphState):
     """
@@ -42,7 +42,7 @@ def after_entry_node(state: ImportGraphState):
         logger.warning(f"node_entry节点获取的文件: {state['local_file_path']} 无法处理对应的类型,直接跳转到END节点!")
         return END
 
-workflow.add_conditional_edges(
+main_builder.add_conditional_edges(
     "node_entry",
     after_entry_node,
     {
@@ -52,11 +52,11 @@ workflow.add_conditional_edges(
     },
 )
 
-workflow.add_edge("node_pdf_to_md", "node_md_img")
-workflow.add_edge("node_md_img", "node_document_split")
-workflow.add_edge("node_document_split", "node_item_name_recognition")
-workflow.add_edge("node_item_name_recognition", "node_bge_embedding")
-workflow.add_edge("node_bge_embedding", "node_import_milvus")
-workflow.add_edge("node_import_milvus", END)
+main_builder.add_edge("node_pdf_to_md", "node_md_img")
+main_builder.add_edge("node_md_img", "node_document_split")
+main_builder.add_edge("node_document_split", "node_item_name_recognition")
+main_builder.add_edge("node_item_name_recognition", "node_bge_embedding")
+main_builder.add_edge("node_bge_embedding", "node_import_milvus")
+main_builder.add_edge("node_import_milvus", END)
 
-kb_import_app = workflow.compile()
+kb_import_app = main_builder.compile()
