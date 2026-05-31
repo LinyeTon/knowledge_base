@@ -182,8 +182,6 @@ def upload_pdf_and_poll(pdf_path_obj: Path) -> str:
 
 
 
-    return ''
-
 
 
 def parse_pdf_to_markdown(state: ImportGraphState) -> ImportGraphState:
