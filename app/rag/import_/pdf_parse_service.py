@@ -175,7 +175,7 @@ def upload_pdf_and_poll(pdf_path_obj: Path) -> str:
                 f"获取下载的zipurl地址,minerU对应服务器发生异常! 解析失败了!!业务无法继续进行了!")
             raise RuntimeError(
                 f"获取下载的zipurl地址,minerU对应服务器发生异常! 解析失败了!!业务无法继续进行了!")
-            # 正在解析中.....
+        # 正在解析中.....
         logger.warning(f"{pdf_path_obj.name}minerU正在解析中......")
         time.sleep(interval_time)
 
