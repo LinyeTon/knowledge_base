@@ -49,7 +49,7 @@ def validate_pdf_paths(state: ImportGraphState) -> tuple[Path, Path]:
         # exist_ok = True 当存在的时候不会创建也不会报错!
         local_dir_obj.mkdir(parents=True, exist_ok=True)
         # 7. 返回 'pdf_path_obj' 与 'local_dir_obj'
-        return pdf_path_obj, local_dir_obj
+    return pdf_path_obj, local_dir_obj
 
 
 #        1. 校验 MinerU 配置是否完整
@@ -72,7 +72,7 @@ def upload_pdf_and_poll(pdf_path_obj: Path) -> str:
         raise ValueError(f"minerU请求核心参数为空(base_url 或者 api_key),业务无法继续进行!")
     # 2. 调用 '/file-urls/batch' 申请上传地址与 'batch_id'
     token = infra_config.mineru.api_key
-    url = f'{infra_config.mineru.base_url}/file-urls/batch'
+    url = f'{infra_config.mineru.base_url}/file-urls/batch/'
     header = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {token}"
@@ -185,7 +185,7 @@ def upload_pdf_and_poll(pdf_path_obj: Path) -> str:
 @step_log("download_and_extract_markdown")
 def download_and_extract_markdown(zip_url: str, local_dir_path_obj: Path, stem: str) -> Path:
     # 1. 下载 MinerU 返回的 zip 结果包
-    response = requests.get(zip_url, timout=MINERU_DOWNLOAD_TIMEOUT_SECONDS)
+    response = requests.get(zip_url, timeout=MINERU_DOWNLOAD_TIMEOUT_SECONDS)
     # 响应状态码
     if response.status_code != 200:
         logger.error(f"下载地址:{zip_url}下载失败,响应状态码为:{response.status_code},业务无法继续进行!!")
@@ -207,46 +207,46 @@ def download_and_extract_markdown(zip_url: str, local_dir_path_obj: Path, stem: 
     if zip_extract_dir_obj.is_dir():
         # 如果已存在，则清空
         shutil.rmtree(zip_extract_dir_obj)
-        # 判断是否存在! 可能是文件或者文件夹
-        # if zip_extract_dir_obj.exists()
-        # 一定是没有
-        zip_extract_dir_obj.mkdir(parents=True, exist_ok=True)
-        # 解压
-        """
-            unpack_archive 解压
-            zip_path_obj: 要解压的压缩文件
-            zip_extract_dir_obj: 解压的目标文件夹
-        """
-        shutil.unpack_archive(zip_path_obj, zip_extract_dir_obj)
-        # 4. 在解压目录中递归查找 `.md` 文件
-        md_file_obj_list = list(zip_extract_dir_obj.rglob("*.md"))
-        if not md_file_obj_list or len(md_file_obj_list) == 0:
-            # 没有md文件
-            logger.error(f"下载地址:{zip_url}下载成功,解压后发现没有任何md文件,业务无法继续进行!!")
-            raise RuntimeError(f"下载地址:{zip_url}下载成功,解压后发现没有任何md文件,业务无法继续进行!!")
-        # 5. 优先选择与原 pdf 同名的 markdown 文件
-        # 取原文件名
-        for md_file_obj in md_file_obj_list:
-            if md_file_obj.stem == stem:
-                logger.info(f"解压的文件名就是原文件名,无需二次处理:{md_file_obj.stem}")
-                return md_file_obj
-            # 6. 若没有同名文件，则退化选择 `full.md` 或第一个 Markdown 文件
-            target_md_obj = None
-            # 取full文件名
-            for md_file_obj_new in md_file_obj_list:
-                if md_file_obj_new.stem == stem:
-                    target_md_obj = md_file_obj_new
-                    break
-            # 异常兜底不规则命名，但是一定能取到值
-            if not target_md_obj:
-                target_md_obj = md_file_obj_list[0]
+    # 判断是否存在! 可能是文件或者文件夹
+    # if zip_extract_dir_obj.exists()
+    # 一定是没有
+    zip_extract_dir_obj.mkdir(parents=True, exist_ok=True)
+    # 解压
+    """
+        unpack_archive 解压
+        zip_path_obj: 要解压的压缩文件
+        zip_extract_dir_obj: 解压的目标文件夹
+    """
+    shutil.unpack_archive(zip_path_obj, zip_extract_dir_obj)
+    # 4. 在解压目录中递归查找 `.md` 文件
+    md_file_obj_list = list(zip_extract_dir_obj.rglob("*.md"))
+    if not md_file_obj_list or len(md_file_obj_list) == 0:
+        # 没有md文件
+        logger.error(f"下载地址:{zip_url}下载成功,解压后发现没有任何md文件,业务无法继续进行!!")
+        raise RuntimeError(f"下载地址:{zip_url}下载成功,解压后发现没有任何md文件,业务无法继续进行!!")
+    # 5. 优先选择与原 pdf 同名的 markdown 文件
+    # 取原文件名
+    for md_file_obj in md_file_obj_list:
+        if md_file_obj.stem == stem:
+            logger.info(f"解压的文件名就是原文件名,无需二次处理:{md_file_obj.stem}")
+            return md_file_obj
+    # 6. 若没有同名文件，则退化选择 `full.md` 或第一个 Markdown 文件
+    target_md_obj = None
+    # 取full文件名
+    for md_file_obj_new in md_file_obj_list:
+        if md_file_obj_new.name.lower() == 'full.md':
+            target_md_obj = md_file_obj_new
+            break
+    # 异常兜底不规则命名，但是一定能取到值
+    if not target_md_obj:
+        target_md_obj = md_file_obj_list[0]
 
-            # 7. 统一重命名为 `{stem}.md` 并返回路径
-            # Path(full) . rename(目标命名) 重命名,并且会修改磁盘文件名称 ||  with_name () 获取修改名称,但是他不改变磁盘
-            # target_md_obj.with_name(f"{stem}.md")   xx/full.md -> Path => xx/文件名.md 不会修改磁盘
-            # rename(新的地址)  target_md_obj -> 改成目标path 修改磁盘
-            logger.info(f"进行解压md文件重命名,原名称:{target_md_obj} , 目标名:{stem}.md")
-            return target_md_obj.rename(target_md_obj.with_name(f"{stem}.md"))
+    # 7. 统一重命名为 `{stem}.md` 并返回路径
+    # Path(full) . rename(目标命名) 重命名,并且会修改磁盘文件名称 ||  with_name () 获取修改名称,但是他不改变磁盘
+    # target_md_obj.with_name(f"{stem}.md")   xx/full.md -> Path => xx/文件名.md 不会修改磁盘
+    # rename(新的地址)  target_md_obj -> 改成目标path 修改磁盘
+    logger.info(f"进行解压md文件重命名,原名称:{target_md_obj} , 目标名:{stem}.md")
+    return target_md_obj.rename(target_md_obj.with_name(f"{stem}.md"))
 
 
 
