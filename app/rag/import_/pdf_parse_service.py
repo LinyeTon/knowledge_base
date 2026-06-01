@@ -111,6 +111,7 @@ def upload_pdf_and_poll(pdf_path_obj: Path) -> str:
             # session 使用和 requests是一样的
             # 作用1: 可以复用请求 requests.Session() session.get post    session.close() [根本不复用]
             # 作用2: 有些特殊的设置 trust_env = False 我谁也不信!!! 向预签名地址传递数据避免干扰成功率更高!!
+            session.trust_env=False
             put_response = session.put(upload_file_url, data=pdf_path_obj.read_bytes())
             # status_code | code
             if put_response.status_code != 200:
