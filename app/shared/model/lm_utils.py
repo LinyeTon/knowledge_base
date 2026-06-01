@@ -3,6 +3,7 @@
 """
 from langchain_core.exceptions import LangChainException
 from langchain_openai import ChatOpenAI
+from langchain.chat_models import init_chat_model
 
 from app.shared.config.lm_config import lm_config
 from app.shared.runtime.logger import logger
@@ -11,6 +12,12 @@ _DEFAULT_LLM_MODEL = "qwen3-32b"
 _DEFAULT_TEMPERATURE = 0.1
 _llm_client_cache: dict[tuple[str, bool], ChatOpenAI] = {}
 
+
+# 初始化模型
+# init_chat_model(
+#     model="qx_max",
+#     model_provider="openai"
+# )
 
 def get_llm_client(model: str | None = None, json_mode: bool = False) -> ChatOpenAI:
     """
@@ -48,6 +55,7 @@ def get_llm_client(model: str | None = None, json_mode: bool = False) -> ChatOpe
     model_kwargs = {}
     if json_mode:
         # 开启JSON标准输出模式，强制模型返回可解析的json_object
+        # 乌龟的配置规定的配置 openai
         model_kwargs["response_format"] = {"type": "json_object"}
         logger.debug(f"[LLM客户端] 已开启JSON输出模式，模型将返回标准JSON结构")
 
@@ -58,8 +66,8 @@ def get_llm_client(model: str | None = None, json_mode: bool = False) -> ChatOpe
             temperature=lm_config.llm_temperature or _DEFAULT_TEMPERATURE,  # 低温度保证输出确定性（0~1）
             api_key=lm_config.api_key,  # API密钥
             base_url=lm_config.base_url,  # API基础地址（适配国产模型代理地址）
-            extra_body=extra_body,  # 国产模型私有参数透传
-            model_kwargs=model_kwargs,  # OpenAI通用参数
+            extra_body=extra_body,     # 国产模型提供参数
+            model_kwargs=model_kwargs,    # OPENAI提供的标准参数
         )
     except LangChainException as e:
         raise Exception(f"[LLM客户端] 模型【{target_model}】初始化失败（LangChain层）：{str(e)}") from e
