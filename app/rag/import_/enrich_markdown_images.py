@@ -2,7 +2,7 @@ import base64
 import mimetypes
 from pathlib import Path
 import re
-from typing import Dict
+from typing import Dict, List
 
 from langchain_core.messages import HumanMessage
 from langchain_core.output_parsers import StrOutputParser
@@ -135,7 +135,7 @@ def summarize_images(image_context_list: list[tuple[str, str, tuple[str, str]]],
         # base64字符串 -> 原始的字节数据
         #     base64.b64decode(base64字符串) -> bytes
         image_path_obj = Path(image_path)
-        image_base_str = base64.b64decode(image_path_obj.read_bytes()).decode("utf-8")
+        image_base_str = base64.b64encode(image_path_obj.read_bytes()).decode(encoding="utf-8")
         # https://help.aliyun.com/zh/model-studio/vision#bc4fd98b485d
         human_message = HumanMessage(
             content=[
