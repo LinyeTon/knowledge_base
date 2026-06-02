@@ -13,3 +13,5 @@ class LLMProvider:
     def vision_chat(self,vision_model_name:str=None):
         model_name = vision_model_name or infra_config.llm.lv_model
         return get_llm_client(model=model_name)
+
+llm_provider = LLMProvider()

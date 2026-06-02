@@ -38,4 +38,4 @@ class MinioGateway:
             f"{infra_config.minio.minio_img_dir}/{stem}/{object_name}"
         )
 
-
+minio_gateway = MinioGateway()
