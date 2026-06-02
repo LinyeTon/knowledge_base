@@ -167,6 +167,11 @@ def summarize_images(image_context_list: list[tuple[str, str, tuple[str, str]]],
     return images_summary_dict
 
 
+"""
+将本地图片上传到 MinIO
+将 Markdown 中的本地图片引用替换为 MinIO 的远程 URL
+最终 Markdown 文件中的图片指向 MinIO 服务器
+"""
 @step_log("upload_images_and_replace")
 def upload_images_and_replace(image_context_list: list[tuple[str, str, tuple[str, str]]],
                               image_summaries_dict: Dict[str, str],
