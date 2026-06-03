@@ -22,7 +22,7 @@ if __name__ == '__main__':
 
     logger.info(f"本地测试 - 项目根目录：{PROJECT_ROOT}")
 
-    test_md_name = os.path.join(r"output\hak180使用说明书", "hak180使用说明书.md")
+    test_md_name = os.path.join(r"output\hl3040网络说明书", "hl3040网络说明书.md")
     test_md_path = os.path.join(PROJECT_ROOT, test_md_name)
 
     if not os.path.exists(test_md_path):
@@ -33,7 +33,7 @@ if __name__ == '__main__':
             "md_path": test_md_path,
             "task_id": "test_task_123456",
             "md_content": "",
-            "file_title": "hak180使用说明书",
+            "file_title": "hl3040网络说明书",
             "local_dir": os.path.join(PROJECT_ROOT, "output"),
         }
         result_state = node_md_img(test_state)
