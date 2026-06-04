@@ -69,12 +69,12 @@ def scan_images(md_content:str,image_path_obj:Path,context_length:int=100) -> li
             # 不是图片
             logger.warning(f"文件:{image_name}不是一张图片,无需处理,跳过本次循环!!")
             continue
-        #2. 定义这张图片专属的正则规则
+        #2. 是图片， 定义图片在md_content中名字的正则规则
         # ![]( 名字 )
         reg = re.compile(r"\!\[.*?\]\(.*?"+re.escape(image_name)+".*?\)")
         match =  reg.search(md_content)
 
-        #3.match校验,不存在,是图片,但是没有引用
+        # 3. match 校验， 若不存在，说明该图片没有在md_content中被引用
         if not match:
             logger.warning(f"图片:{image_name}没有被md内容引用!无需处理,跳过本次循环!!")
             continue
@@ -233,7 +233,7 @@ def upload_images_and_replace(image_context_list: list[tuple[str, str, tuple[str
     #    {image_name:url}
     #    {image_name:描述}
     # 4. 循环处理每一张图片,替换md_content内容
-    for image_name, image_ur in image_minio_url_dict.items():
+    for image_name, image_minio_url in image_minio_url_dict.items():
         # image_name -> image_ur
         # image_name -> image_summary
         image_summary = image_summaries_dict[image_name]
@@ -244,12 +244,9 @@ def upload_images_and_replace(image_context_list: list[tuple[str, str, tuple[str
         reg = re.compile(r"\!\[.*?\]\(.*?" + re.escape(image_name) + ".*?\)")
 
         # 替换
-        # 参数1: 要替换入的内容 1. 替换入的字符 [会解析 /分组符号]  2. 匿名函数 lambda 只是调用一次函数,返回结果 他不在处理!!
-        # 参数2: 在哪个文本中替换
-        # 每次替换完,返回一个替换后的新内容
-        # image_summary  | image_url 存在分组符号 /2 /1   ![{image_summary}]({image_ur}) -> 找到我对应的一个匹配项
-        # ![{image_summary}]({image_ur}) -> 1   2   -> 匹配项只有一个 出现异常
-        md_content = reg.sub(lambda _: f"![{image_summary}]({image_ur})", md_content)
+        # 字符串里包含 \1, \2 这样的分组符号，正则引擎会去解析并替换成对应分组捕获的内容。
+        # 匿名函数返回的字符串，正则引擎不会再对其进行二次解析（不会去管里面有没有分组符号）
+        md_content = reg.sub(lambda _: f"![{image_summary}]({image_minio_url})", md_content)
 
     # 5. 返回新的md_content
     return md_content
