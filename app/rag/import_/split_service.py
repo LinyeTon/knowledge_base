@@ -92,12 +92,11 @@ def split_by_titles(md_content: str, file_title: str) -> list[dict]:
                     "title": current_title,
                     "file_title": file_title
                 })
+                chunk_size += 1
 
             # 以当前行作为新块的标题
             current_title = line
             current_title_lines = [current_title]
-            chunk_size += 1
-
         else:
             current_title_lines.append(line)
 
@@ -108,6 +107,7 @@ def split_by_titles(md_content: str, file_title: str) -> list[dict]:
             "title": current_title,
             "file_title": file_title
         })
+        chunk_size += 1
 
     # ===================== 兜底：全文无标题时 =====================
     if chunk_size == 0:
