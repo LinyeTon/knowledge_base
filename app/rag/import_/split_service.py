@@ -223,7 +223,7 @@ def _merge_short_chunks(final_chunks: list[dict], max_length: int = CHUNK_MAX_SI
 @step_log("refine_chunks")
 def refine_chunks(sections: list[dict], max_len: int = CHUNK_MAX_SIZE, min_len: int = CHUNK_SIZE) -> list[dict]:
     """
-        【步骤4】Chunk精细化处理（核心：长切短合，适配大模型/检索）
+        Chunk精细化处理（核心：长切短合，适配大模型/检索）
         执行流程：1.切分超长章节 2.合并过短章节 3.父标题兜底（适配Milvus向量库schema）
         :param sections: 步骤3处理后的章节列表
         :param max_len: 单个Chunk最大字符长度
@@ -231,7 +231,7 @@ def refine_chunks(sections: list[dict], max_len: int = CHUNK_MAX_SIZE, min_len: 
     """
     # 边界处理： 最大长度无效（为空或0），直接返回原章节，避免切分异常
     if not max_len or max_len <= 0:
-        logger.warning(f"步骤4： Chunk最大长度配置无效（{max_len}）， 跳过精细化处理")
+        logger.warning(f"： Chunk最大长度配置无效（{max_len}）， 跳过精细化处理")
         return sections
 
     # 阶段1： 切分超长章节 -> 所有章节长度控制在max_len内
@@ -242,7 +242,7 @@ def refine_chunks(sections: list[dict], max_len: int = CHUNK_MAX_SIZE, min_len: 
             refined_split.extend(_split_long_section(sec, max_len))
         else:
             refined_split.append(sec)
-    logger.info(f"步骤4-1： 超长章节切分完成，共生成{len(refined_split)}个初始子Chunk")
+    logger.info(f"超长章节切分完成，共生成{len(refined_split)}个初始子Chunk")
     # 阶段2： 合并过短章节
     final_merged_chunks = _merge_short_chunks(refined_split)
 
