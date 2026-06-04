@@ -215,8 +215,8 @@ def _merge_short_chunks(final_chunks: list[dict], max_length: int = CHUNK_MAX_SI
             final_merge_chunks.append(start_chunk)
             start_chunk = next_chunk
         # 循环执行完毕，将最后的chunk加入结果列表
-        if start_chunk is not None:
-            final_merge_chunks.append(start_chunk)
+    if start_chunk is not None:
+        final_merge_chunks.append(start_chunk)
     return final_merge_chunks
 
 
