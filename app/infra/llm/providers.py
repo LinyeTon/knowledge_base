@@ -14,4 +14,18 @@ class LLMProvider:
         model_name = vision_model_name or infra_config.llm.lv_model
         return get_llm_client(model=model_name)
 
+    def embedding_mode(self):
+        return get_bge_m3_ef()
+
+    def embed_documents(self,documents:list[str]) -> dict[str,list]:
+        """
+            {
+               dense: [[],[]], 1024
+               sparse: [{index:xx},{}]
+            }
+        :param documents:
+        :return:
+        """
+        return generate_embeddings(documents)
+
 llm_provider = LLMProvider()

@@ -1,6 +1,9 @@
 from app.process.import_.agent.state import ImportGraphState
+from app.shared.runtime.logger import step_log
 
 
+
+@step_log("index_chunks")
 def index_chunks(state: ImportGraphState) -> ImportGraphState:
     """
     入库服务：
