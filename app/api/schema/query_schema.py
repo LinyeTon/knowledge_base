@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel
 
 class QueryRequestParam(BaseModel):
@@ -15,3 +17,24 @@ class QueryNotStreamResponse(BaseModel):
     answer:str
     done_list:list
     image_urls:list
+
+# 清空历史记录响应的结构
+class HistoryCleanResponse(BaseModel):
+    message:str
+    deleted_count:int
+
+
+# 查询历史聊天记录的结构
+class HistoryItemResponse(BaseModel):
+    id:str
+    session_id:str
+    role:str
+    text:str
+    rewritten_query:str
+    item_names:list
+    image_urls:list
+    ts:Any
+
+class HistoryResponse(BaseModel):
+    session_id:str
+    items:list[HistoryItemResponse]

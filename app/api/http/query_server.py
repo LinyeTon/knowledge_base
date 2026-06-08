@@ -6,36 +6,37 @@ from fastapi import FastAPI, Request, BackgroundTasks
 from fastapi.responses import FileResponse, StreamingResponse
 from starlette.middleware.cors import CORSMiddleware
 
-from app.api.schema.query_schema import QueryRequestParam, QueryStreamResponse, QueryNotStreamResponse
+from app.api.schema.query_schema import QueryRequestParam, QueryStreamResponse, QueryNotStreamResponse, \
+    HistoryCleanResponse, HistoryResponse, HistoryItemResponse
+from app.infra.persistence.history_repository import history_repository
 from app.process.query.agent.main_graph import query_graph_app
 from app.shared.config.settings_config import settings
-from app.shared.runtime.logger import logger
-from app.shared.utils.path_util import PROJECT_ROOT
+from app.shared.runtime.logger import PROJECT_ROOT, logger
 from app.shared.utils.sse_utils import sse_generator, create_sse_queue, SSEEvent, push_to_session
 from app.process.query.agent.state import QueryGraphState, create_query_default_state
 from app.shared.utils.task_utils import clear_task, update_task_status, TASK_STATUS_FAILED, TASK_STATUS_PROCESSING, \
     TASK_STATUS_COMPLETED, get_done_task_list
 
 app = FastAPI(
-    title=settings.import_app_name,
-    description="企业化 RAG 导入服务，负责文件上传、导入执行与状态查询。",
+    title=settings.query_app_name,
+    description="描述,进行rag查询的服务对象",
     version="0.2.0"
 )
 
 # 跨域问题  CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=list(settings.cors_origins) or ["*"],
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"]
 )
 
 @app.get("/html")
 def chat_html():
-    chat_html_path_obj = PROJECT_ROOT / "app" / "resources" / "html" / "import.html"
+    chat_html_path_obj = PROJECT_ROOT / "app" / "resources" / "html" / "chat.html"
     return FileResponse(
         path = chat_html_path_obj,
-        media_type = guess_type(chat_html_path_obj)[0],
+        media_type = guess_type(chat_html_path_obj.name)[0],
     )
 
 @app.get("/health")
@@ -45,14 +46,14 @@ def health():
         "message": "可以访问！"
     }
 
-@app.get("/steam/{session_id}")
+@app.get("/stream/{session_id}")
 def stream(session_id, request:Request):
     return StreamingResponse(
         sse_generator(session_id, request),
         media_type="text/event-stream"
     )
 
-def invoke_query_graph(session_id: str, query: str, is_stream=False):
+def invoke_query_graph(session_id: str, query: str, is_stream:bool=False):
     # 执行  动态测试
     state = create_query_default_state(
         session_id=session_id,
@@ -86,7 +87,8 @@ def invoke_query_graph(session_id: str, query: str, is_stream=False):
                 "image_urls": image_urls
             }
         )
-
+        # 返回结果! 非流式需要
+        return result_state
     except Exception as e:
         update_task_status(session_id, TASK_STATUS_FAILED, is_stream)
         push_to_session(session_id, SSEEvent.ERROR, {"error": str(e)})
@@ -137,6 +139,41 @@ def query(backgroundtasks: BackgroundTasks, request: QueryRequestParam):
             image_urls=final_state.get("image_urls")
         )
 
+# 清空历史对话记录
+@app.delete("/history/{session_id}")
+def remove_history(session_id:str):
+    delete_count = history_repository.clear_session(session_id=session_id)
+    logger.info(f"清空:{session_id}对应的历史记录!清空数量:{delete_count}")
+    return HistoryCleanResponse(
+        message=f"清空:{session_id}对应的历史记录!清空数量:{delete_count}",
+        deleted_count=delete_count
+    )
+
+
+@app.get("/history/{session_id}")
+def get_history(session_id:str,limit:int = 10):
+
+    message_list =  history_repository.list_recent(session_id=session_id,limit=limit)
+
+    logger.info(f"完成:{session_id}对应的历史记录查询!查询的数据数量:{len(message_list)}")
+
+    return HistoryResponse(
+        session_id=session_id,
+        items=[
+              HistoryItemResponse(
+                  id=str(message.get("_id")),
+                  session_id=message.get("session_id"),
+                  role=message.get("role"),
+                  text=message.get("text"),
+                  rewritten_query=message.get("rewritten_query"),
+                  item_names = message.get("item_names"),
+                  image_urls = message.get("image_urls"),
+                  ts =message.get("ts")
+              )
+              for message in  message_list
+        ]
+    )
+
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run(app, host=settings.app_host, port=settings.app_port)
+    uvicorn.run(app, host=settings.app_host, port=settings.query_app_port)
