@@ -30,7 +30,7 @@ def prepare_chunks_collection():
     milvus_client = milvus_gateway.client
 
     # 获取集合名称
-    collection_name = milvus_gateway.item_collection_name
+    collection_name = milvus_gateway.chunk_collection_name
 
     # 如果集合已存在，直接返回，无需重复创建
     if milvus_client.has_collection(collection_name=collection_name):
@@ -66,7 +66,7 @@ def prepare_chunks_collection():
     schema.add_field(field_name="dense_vector", datatype=DataType.FLOAT_VECTOR, dim=1024)
 
     # 添加稀疏向量字段： FLOAT_VECTOR 类型
-    schema.add_field(field_name="sparse_vector", datatype=DataType.FLOAT_VECTOR)
+    schema.add_field(field_name="sparse_vector", datatype=DataType.SPARSE_FLOAT_VECTOR)
 
 
     # ===================== 创建索引 =====================
@@ -104,7 +104,7 @@ def prepare_chunks_collection():
 @step_log("remove_old_chunks")
 def remove_old_chunks(file_title: str):
     milvus_gateway.client.delete(
-        collection_name=milvus_gateway.item_collection_name,
+        collection_name=milvus_gateway.chunk_collection_name,
         filter=f"file_title=='{file_title}'"
     )
 
@@ -113,7 +113,7 @@ def remove_old_chunks(file_title: str):
 @step_log("insert_chunks")
 def insert_chunks(chunks: list[dict]):
     result = milvus_gateway.client.insert(
-        collection_name=milvus_gateway.item_collection_name,
+        collection_name=milvus_gateway.chunk_collection_name,
         data=chunks,
     )
     logger.info(f"插入数据成功! 总条数:{result.get('insert_count', 0)}")
