@@ -49,6 +49,7 @@ dependencies = [
     { name = "langchain-mcp-adapters" },
     { name = "langchain-openai" },
     { name = "langgraph" },
+    { name = "logger" },
     { name = "loguru" },
     { name = "magic-pdf" },
     { name = "mineru-kie-sdk" },
@@ -83,6 +84,7 @@ requires-dist = [
     { name = "langchain-mcp-adapters", specifier = ">=0.2.2" },
     { name = "langchain-openai", specifier = ">=1.1.11" },
     { name = "langgraph", specifier = ">=1.1.3" },
+    { name = "logger", specifier = ">=1.4" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "magic-pdf", specifier = ">=1.3.12" },
     { name = "mineru-kie-sdk", specifier = ">=0.1.1" },
@@ -1733,6 +1735,12 @@ sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/be/2a/2d5e6c67396fd2
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/1a/94/1f5d72655ab6534129540843776c40eff757387b88e798d8b3bf7e313fd4/langsmith-0.7.22-py3-none-any.whl", hash = "sha256:6e9d5148314d74e86748cb9d3898632cad0320c9323d95f70f969e5bc078eee4", size = 359927, upload-time = "2026-03-19T22:45:21.603Z" },
 ]
+
+[[package]]
+name = "logger"
+version = "1.4"
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/73/2f/b0d28eaa1e2c1cf64129f8da3fe701888d152677fec708cd0f13e8309e1e/logger-1.4.tar.gz", hash = "sha256:4ecac57133c6376fa215f0fe6b4dc4d60e4d1ad8be005cab4e8a702df682f8b3", size = 1187, upload-time = "2013-10-22T16:49:01.48Z" }
 
 [[package]]
 name = "loguru"
