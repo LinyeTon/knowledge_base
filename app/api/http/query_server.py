@@ -76,17 +76,16 @@ def invoke_query_graph(session_id: str, query: str, is_stream:bool=False):
         logger.info(f"执行结束，执行结果为：{result_state}")
         update_task_status(session_id, TASK_STATUS_COMPLETED, is_stream)
 
-        image_urls = ["http://www.baidu.com/img/bd_logo.png"]
-
-        push_to_session(
-            session_id,
-            SSEEvent.FINAL,
-            {
-                "answer": result_state['answer'],
-                "status": "completed",
-                "image_urls": image_urls
-            }
-        )
+        if is_stream:
+            push_to_session(
+                session_id,
+                SSEEvent.FINAL,  # 显示图片
+                {
+                    "answer": result_state['answer'],
+                    "status": "completed",
+                    "image_urls": result_state.get("image_urls",[])
+                }
+            )
         # 返回结果! 非流式需要
         return result_state
     except Exception as e:
@@ -136,7 +135,7 @@ def query(backgroundtasks: BackgroundTasks, request: QueryRequestParam):
             session_id=session_id,
             answer=final_state.get("answer"),
             done_list=get_done_task_list(session_id),
-            image_urls=final_state.get("image_urls")
+            image_urls=final_state.get("image_urls", [])
         )
 
 # 清空历史对话记录

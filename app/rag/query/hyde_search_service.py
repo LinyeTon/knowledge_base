@@ -17,11 +17,11 @@ def get_data_and_validates(state:QueryGraphState) -> tuple[str,list[str]]:
     rewritten_query = state.get("rewritten_query")
     item_names = state.get("item_names",[])
 
-    if not rewritten_query or not len(item_names) == 0:
+    if not rewritten_query or len(item_names) == 0:
         logger.error(f"重写问题或者关联的主体为空,无法继续业务!")
         raise ValueError(f"重写问题或者关联的主体为空,无法继续业务!")
 
-    return rewritten_query,item_names
+    return rewritten_query, item_names
 
 
 def call_llm_by_rewritten_query(rewritten_query) -> str:
