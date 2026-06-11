@@ -36,7 +36,7 @@ app.add_middleware(
 
 @app.get("/html")
 def html():
-    html_path_obj = PROJECT_ROOT / "app" / "resources" / "import.html"
+    html_path_obj = PROJECT_ROOT / "app" / "resources" / "html" / "import.html"
     return FileResponse(
         path=html_path_obj,
         media_type=guess_type(html_path_obj)[0],
